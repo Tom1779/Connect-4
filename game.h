@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <SFML\Graphics.hpp>
+#include <SFML\Network\IpAddress.hpp>
 
 using namespace std;
 using namespace sf;

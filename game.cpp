@@ -2,6 +2,7 @@
 
 game::game()
 {
+
 	//set gamestate to normal
 	gameState = 0;
 
@@ -228,7 +229,6 @@ void game::delay(int milli_seconds)
 
 connectGame::connectGame()
 {
-
 	display_board(); //debugging
 
 	while (gameState == 0)
