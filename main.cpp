@@ -1,8 +1,8 @@
 ﻿#include "game.h"
 int main()
 {
-	NetworkConnection con;
-	con.init();
+	/* NetworkConnection con;
+	con.init(); */
 	string choice;
 	//this will contain the menu where you can select the game
 	RenderWindow window(sf::VideoMode(634, 600), "Rules");

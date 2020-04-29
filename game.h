@@ -18,16 +18,16 @@ protected:
 	char playerturn;
 
 	//name of p1
-	string username1;
+	string local_user;
 
 	//name of p2
-	string username2;
+	string remote_user;
 
 
 	int current_col;
 	int current_row;;
 
-
+	NetworkConnection net;
 
 public:
 	//constructor

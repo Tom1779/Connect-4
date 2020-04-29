@@ -8,6 +8,15 @@
 using namespace sf;
 using namespace std;
 
+struct UserData
+{
+	Int16 col;
+	sf::String user_name;
+};
+sf::Packet& operator <<(sf::Packet& packet, const UserData& data);
+sf::Packet& operator >>(sf::Packet& packet, UserData& data);
+
+
 class NetworkConnection
 {
 public:
@@ -16,8 +25,9 @@ public:
 	~NetworkConnection();
 
 	void init();
-	void send(int data);
-	int recieve();
+	void send(UserData);
+	UserData recieve();
+	
 
 private:
 
@@ -26,6 +36,7 @@ private:
 	int server_tcp_port;
 	TcpListener server_listener;
 	TcpSocket socket;
+
 
 	void init_server();
 	void init_client();

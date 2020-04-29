@@ -2,7 +2,7 @@
 
 game::game()
 {
-
+	net.init();
 	//set gamestate to normal
 	gameState = 0;
 
@@ -40,12 +40,17 @@ game::~game()
 
 void game::setUsernames()
 {
-	cout << "Enter name for Player 1: ";
+	
+	cout << "Enter Player Name: ";
 	// cin >> username1;
-	getline(cin, username1); // reads spaces
-	cout << "Enter name for Player 2: ";
-	//cin >> username2;
-	getline(cin, username2);
+	getline(cin, local_user); // reads spaces
+	UserData data;
+	data.user_name = local_user;
+	net.send(data);
+	cout << "Waiting for remote player to enter name..." << endl;
+	data = net.recieve();
+	remote_user = data.user_name;
+	cout << "Remote player name: " << remote_user << endl;
 }
 
 void game::declareWinner()
@@ -54,6 +59,7 @@ void game::declareWinner()
 	font.loadFromFile("coolvetica_rg.ttf");
 
 	sf::Text text("", font);
+	/*
 	switch (gameState)
 	{
 	case 0:
@@ -79,6 +85,7 @@ void game::declareWinner()
 		break;
 
 	}
+	*/
 	sf::RenderWindow window(sf::VideoMode(1024, 1024), "Winner");
 
 	window.setFramerateLimit(12);
@@ -348,14 +355,14 @@ void connectGame::turn(char player)
 //Creates text to show username
 	Text person("", font);
 	if (player == '1') {
-		person.setString(username1);
+		//person.setString(username1);
 		person.setFillColor(Color::Red);
 		arrow.setFillColor(Color::Red);
 		arrow.setOutlineColor(Color::White);
 		arrow.setOutlineThickness(4.f);
 	}
 	else {
-		person.setString(username2);
+		//person.setString(username2);
 		person.setFillColor(Color::Yellow);
 		arrow.setFillColor(Color::Yellow);
 		arrow.setOutlineColor(Color::White);
