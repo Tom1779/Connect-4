@@ -1,23 +1,8 @@
 ﻿#include "game.h"
 int main()
 {
-	string is_server;
-	int server_tcp_port = 3000;
-	IpAddress server_address = IpAddress::getLocalAddress();
-	do
-	{
-		cout << "Is this computer the server(yes/no): ";
-		getline(cin, is_server);
-		for_each(is_server.begin(), is_server.end(), [](char& c)
-			{
-				c = ::toupper(c);
-			});
-	} while (is_server != "YES" && is_server != "NO");
-	if (is_server == "YES")
-	{
-		cout << "Please Connect the client to this address: " << server_address.toString() << ":" << server_tcp_port << endl;
-		exit(1);
-	}
+	NetworkConnection con;
+	con.init();
 	string choice;
 	//this will contain the menu where you can select the game
 	RenderWindow window(sf::VideoMode(634, 600), "Rules");
