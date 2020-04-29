@@ -34,16 +34,72 @@ void NetworkConnection::init()
 	}
 }
 
-void NetworkConnection::init_client()
+void NetworkConnection::send(int data)
 {
-	string server_address_string;
-	cout << "Please enter server address: ";
-	getline(cin, server_address_string);
-	server_address = IpAddress(server_address_string);
+	sf::Int16 sf_data = data;
+	Packet packet;
+	packet << sf_data;
+	socket.send(packet);
+	
+}
+
+int NetworkConnection::recieve()
+{
+	sf::Int16 sf_data;
+	Packet packet;
+	packet >> sf_data;
+	socket.receive(packet);
+	if (packet >> sf_data)
+	{
+		// cout << "packet read succesfully" << endl;
+	}
+	else
+	{
+		cout << "Failed to read packet" << endl;
+		system("pause");
+		exit(1);
+	}
+	return sf_data;
 }
 
 void NetworkConnection::init_server()
 {
+	Int16 message;
 	server_address = IpAddress::getLocalAddress();
 	cout << "Please connect the client to this address: " << server_address.toString() << endl;
+	if (server_listener.listen(server_tcp_port) != Socket::Done)
+	{
+		cout << "Error: Server Failed To Bind Socket" << endl;
+		exit(1);
+	}
+	cout << "listening succeded" << endl;
+	if (server_listener.accept(socket) != Socket::Done)
+	{
+		cout << "Server Failed To Accept Connection" << endl;
+		exit(1);
+	}
+	cout << "Server Succesfully Accepted Connection" << endl;
+	message = recieve();
+	cout << "The message is: " << message << endl;
 }
+
+void NetworkConnection::init_client()
+{
+	INT16 message = 3;
+	string server_address_string;
+	cout << "Please enter server address: ";
+	getline(cin, server_address_string);
+	server_address = IpAddress(server_address_string);
+	Socket::Status status = socket.connect(server_address, server_tcp_port);
+	if (status != Socket::Done)
+	{
+		cout << "Client Failed To Connect" << endl;
+		exit(1);
+	}
+	cout << "Client connected succesfully" << endl;
+	Packet packet;
+	packet << message;
+	socket.send(packet);
+	send(message);
+}
+

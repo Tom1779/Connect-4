@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <SFML\Graphics.hpp>
+
 #include "NetworkConnection.h"
 
 using namespace std;
