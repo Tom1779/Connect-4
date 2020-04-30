@@ -2,6 +2,8 @@
 
 game::game()
 {
+	int i = 0;
+	UserData data;
 	net.init();
 	//set gamestate to normal
 	gameState = 0;
@@ -10,16 +12,25 @@ game::game()
 
 	//randomly set the first turn
 	srand((unsigned)time(NULL));
-	int i = rand() % 2 + 1;
-
-	if (i == 1)
-		playerturn = '1';
+	if (net.is_server())
+	{
+		i = rand() % 2 + 1;
+		data.col = 3 - i;
+		net.send(data);
+	}
 	else
-		playerturn = '2';
+	{
+		data = net.recieve();
+		i = data.col;
+	}
 
+	playerturn = (i == 1) ? '1' : '2';
+    
 
 	//gets the usernames of the players
 	setUsernames();
+
+	window = new RenderWindow(VideoMode(1000, 1000), "Connect 4 C++");
 
 
 	current_col = 0;
@@ -86,23 +97,24 @@ void game::declareWinner()
 
 	}
 	*/
-	sf::RenderWindow window(sf::VideoMode(1024, 1024), "Winner");
+	delete window;
+	 window = new sf::RenderWindow(sf::VideoMode(1024, 1024), "Winner");
 
-	window.setFramerateLimit(12);
+	window->setFramerateLimit(12);
 
 	text.setCharacterSize(150);
 	text.setFillColor(sf::Color::Yellow);
 	text.setPosition(175, 350);
 
-	while (window.isOpen()) {
+	while (window->isOpen()) {
 
 		Event event;
-		while (window.pollEvent(event))
+		while (window->pollEvent(event))
 		{
 			if (event.type == Event::Closed)
 			{
 				//close window​
-				window.close();
+				window->close();
 			}
 		}
 
@@ -126,13 +138,13 @@ void game::declareWinner()
 		confetti.setTexture(texture2);
 		confetti.setPosition(0, 0);
 
-		window.display();
-		window.draw(trophy);
-		window.draw(text);
-		window.draw(confetti);
-		window.display();
+		window->display();
+		window->draw(trophy);
+		window->draw(text);
+		window->draw(confetti);
+		window->display();
 		delay(3000);
-		window.close();
+		window->close();
 	}
 }
 
@@ -199,29 +211,6 @@ bool game::checkWinner(char player)
 	return false;
 }
 
-int game::moveHorizontal()
-{
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-	{
-		//change this delay function to set how fast the response rate for the movment is
-		//delay(200);
-		cout << "move right\n"; //for debugging
-		return 1;
-
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-	{
-		//change this delay function to set how fast the response rate for the movment is
-		//delay(200);
-		cout << "move left\n"; //for dubugging
-		return -1;
-
-	}
-
-	return 0;
-}
-
 void game::delay(int milli_seconds)
 {
 	// Storing start time 
@@ -234,9 +223,148 @@ void game::delay(int milli_seconds)
 
 
 
+void connectGame::local_turn()
+{
+	UserData data;
+	draw_board();
+	init_arrow();
+	int position = 3;
+	person = Text("", font);
+	person.setString(local_user);
+	person.setFillColor(Color::Yellow);
+	arrow.setFillColor(Color::Yellow);
+	arrow.setOutlineColor(Color::Yellow);
+	arrow.setOutlineThickness(4.f);
+	person.setCharacterSize(50);
+	person.setPosition(280, 105);
+	winner = Text("", font);
+	winner.setFillColor(Color::Black);
+	winner.setCharacterSize(100);
+	winner.setPosition(500, 500);
+	cout << "hello"	<< endl;
+	while (window->isOpen())
+	{
+		draw_board();
+		Event event;
+		int move = 0;
+		while (window->pollEvent(event))
+		{
+			if (event.type == Event::Closed)
+			{
+				//close window
+				window->draw(winner);
+				window->display();
+				delay(2000);
+				window->close();
+
+				//set the gamestate to a tie
+				gameState = 3;
+			}
+			if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Right))
+			{
+				cout << "move right\n"; //for debugging
+				move = 1;
+			}
+
+			//if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+			if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Left))
+			{
+				cout << "move left\n"; //for dubugging
+				move = -1;
+			}
+			if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Space))
+			{
+				//delay(10);
+				//test if they chip can be placed here, and if it can, then place it
+				placeChip(position, player_sign);
+				data.col = position;
+				net.send(data);
+				return;
+				//else no chip is placed, and loop contiunes
+
+				//can add graphics here to indicate failed placement 
+			}
+		}
+		//lets player move left and right
+		position = position + move;
+
+		//set the arrow to follow the position
+		arrow.setPosition(178 + 110 * position, 180);
+
+		//makes sure they stay in the boundries
+		if (position < 0)
+			position++;
+		if (position > 6)
+			position--;
+		//clear window and put it bakc onto the screen
+	    display_current_board();
+	}
+}
+
+void connectGame::remote_turn()
+{
+	sf::SocketSelector selector;
+	selector.add(net.socket);
+	UserData data;
+	draw_board();
+	person = Text("", font);
+	person.setString(remote_user);
+	person.setFillColor(Color::Red);
+	person.setCharacterSize(50);
+	person.setPosition(280, 105);
+	winner = Text("", font);
+	winner.setFillColor(Color::Black);
+	winner.setCharacterSize(100);
+	winner.setPosition(500, 500);
+	while (window->isOpen())
+	{
+		Event event;
+		while (window->pollEvent(event))
+		{
+			if (event.type == Event::Closed)
+			{
+				//close window
+				window->draw(winner);
+				window->display();
+				delay(2000);
+				window->close();
+
+				//set the gamestate to a tie
+				gameState = 3;
+			}
+		}
+		display_current_board();
+		if (selector.wait())
+		{
+			data = net.recieve();
+			if (player_sign == '1')
+			{
+				placeChip(data.col, '2');
+			}
+			else
+			{
+				placeChip(data.col, '1');
+			}
+			break;
+		}
+	}
+}
+
 connectGame::connectGame()
 {
+	if (net.is_server())
+	{
+		player_sign = '1';
+	}
+	else
+	{
+		player_sign = '2';
+	}
+
+	net.socket.setBlocking(false);
+
 	display_board(); //debugging
+
 
 	while (gameState == 0)
 	{
@@ -245,7 +373,7 @@ connectGame::connectGame()
 
 
 		//play makes his turn
-		turn(playerturn);
+		turn();
 
 		display_board(); //debugging
 
@@ -271,28 +399,39 @@ connectGame::connectGame()
 //}
 
 //code for a single turn of one player
-void connectGame::turn(char player)
+void connectGame::turn()
 {
+	int move = 0;
 	//Create Font (display score)
-	Font font;
 	font.loadFromFile("coolvetica_rg.ttf");
 
 	//Creates Texture
-	Texture texture;
+
 	texture.setSmooth(true);
 
-	//create window
-	RenderWindow window(VideoMode(1000, 1000), "Connect 4 C++");
-
 	//set max fps
-	window.setFramerateLimit(15);
+	window->setFramerateLimit(15);
+
+	if (playerturn == '1')
+	{
+		local_turn();
+	}
+	else
+	{
+		remote_turn();
+	}
+	
 
 	//psotion. can move form 0 to 6
-	int position = 3;
 
+    
+	
 
+}
+
+void connectGame::draw_board()
+{
 	//create array of circle objects
-	CircleShape circles[6][7];
 
 	//set all the objects size, color, and position
 	for (int row = 0; row < 6; row++)
@@ -304,147 +443,74 @@ void connectGame::turn(char player)
 			if (board[row][col] == NULL)
 				circles[row][col].setFillColor(Color::White);
 			else if (board[row][col] == '1')
-				circles[row][col].setFillColor(Color::Red);
-			else
 				circles[row][col].setFillColor(Color::Yellow);
+			else
+				circles[row][col].setFillColor(Color::Red);
 
 			circles[row][col].setPosition(115 + col * 110, 260 + row * 110);
 		}
 	}
 	//Creates the board
-	RectangleShape board(Vector2f(795, 675));
-	board.setFillColor(Color(0, 0, 255));
-	board.setPosition(100, 250);
+	
+	window_board.setFillColor(Color(0, 0, 255));
+	window_board.setPosition(100, 250);
 
-	RectangleShape border(Vector2f(815, 695));
 	border.setFillColor(Color::Blue);
 	border.setPosition(90, 240);
-
-	//Create arrow
-	CircleShape arrow(25, 3);
-	arrow.setFillColor(Color::White);
-	arrow.setPosition(175, 175);
-	arrow.rotate(60.f);
-
-	Texture texture3;
+	
 	if (!texture3.loadFromFile("board.png"))
 	{
 		cout << "Could not load board.png" << endl;
 	}
 	texture.setSmooth(true);
 
-	Sprite cover;
 	cover.setTexture(texture3);
 	cover.setPosition(100, 250);
 
 	//Creates the title
-	Text text("", font);
+	text = Text("", font);
 	text.setString("           Connect 4             ");
 	text.setStyle(Text::Underlined);
 	text.setCharacterSize(100);
 	text.setFillColor(Color::White);
 
 	//Creates text to show turn
-	Text turn("", font);
-	turn.setString("Player's Turn:  ");
-	turn.setCharacterSize(50);
-	turn.setPosition(0, 105);
-	turn.setFillColor(Color::White);
+	turn_text = Text("", font);
+	turn_text.setString("Player's Turn:  ");
+	turn_text.setCharacterSize(50);
+	turn_text.setPosition(0, 105);
+	turn_text.setFillColor(Color::White);
 
-	//Creates text to show username
-//Creates text to show username
-	Text person("", font);
-	if (player == '1') {
-		//person.setString(username1);
-		person.setFillColor(Color::Red);
-		arrow.setFillColor(Color::Red);
-		arrow.setOutlineColor(Color::White);
-		arrow.setOutlineThickness(4.f);
-	}
-	else {
-		//person.setString(username2);
-		person.setFillColor(Color::Yellow);
-		arrow.setFillColor(Color::Yellow);
-		arrow.setOutlineColor(Color::White);
-		arrow.setOutlineThickness(4.f);
-	}
-	person.setCharacterSize(50);
-	person.setPosition(280, 105);
+}
 
-	Text winner("", font);
-	winner.setFillColor(Color::Black);
-	winner.setCharacterSize(100);
-	winner.setPosition(500, 500);
+void connectGame::display_current_board()
+{
+	window->clear();
+	window->draw(text);
+	window->draw(turn_text);
+	window->draw(person);
+	window->draw(arrow);
+	window->draw(border);
+	window->draw(window_board);
+	window->draw(cover);
 
-	while (window.isOpen())
+
+	for (int row = 0; row < 6; row++)
 	{
-		Event event;
-
-		while (window.pollEvent(event))
+		for (int col = 0; col < 7; col++)
 		{
-			if (event.type == Event::Closed)
-			{
-				//close window
-				window.draw(winner);
-				window.display();
-				delay(2000);
-				window.close();
-
-				//set the gamestate to a tie
-				gameState = 3;
-			}
-
+			window->draw(circles[row][col]);
 		}
-
-
-		//lets player move left and right
-		position = position + moveHorizontal();
-
-		//set the arrow to follow the position
-		arrow.setPosition(178 + 110 * position, 180);
-
-		//makes sure they stay in the boundries
-		if (position < 0)
-			position++;
-		if (position > 6)
-			position--;
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-		{
-			delay(10);
-			//test if they chip can be placed here, and if it can, then place it
-			if (placeChip(position, player))
-			{
-				//close the window so it is the next players turn
-				window.close();
-			}
-
-			//else no chip is placed, and loop contiunes
-
-			//can add graphics here to indicate failed placement 
-		}
-
-
-		//clear window and put it bakc onto the screen
-		window.clear();
-		window.draw(text);
-		window.draw(turn);
-		window.draw(person);
-		window.draw(arrow);
-		window.draw(border);
-		window.draw(board);
-		window.draw(cover);
-
-
-		for (int row = 0; row < 6; row++)
-		{
-			for (int col = 0; col < 7; col++)
-			{
-				window.draw(circles[row][col]);
-			}
-		}
-		window.display();
 	}
+	window->display();
+}
+
+void connectGame::init_arrow()
+{
+	arrow = CircleShape(25, 3);
+	arrow.setFillColor(Color::White);
+	arrow.setPosition(175, 175);
+	arrow.rotate(60.f);
 }
 
 bool connectGame::testHorizontal(char player)

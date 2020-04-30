@@ -32,9 +32,9 @@ void NetworkConnection::init()
 			});
 	} while (is_server_string != "YES" && is_server_string != "NO");
 
-	is_server = (is_server_string == "YES");
+	_is_server = (is_server_string == "YES");
 
-	if (is_server)
+	if (_is_server)
 	{
 		init_server();
 	}
@@ -69,6 +69,11 @@ UserData NetworkConnection::recieve()
 	return data;
 }
 
+bool NetworkConnection::is_server()
+{
+	return _is_server;
+}
+
 void NetworkConnection::init_server()
 {
 	server_address = IpAddress::getLocalAddress();
@@ -78,7 +83,7 @@ void NetworkConnection::init_server()
 		cout << "Error: Server Failed To Bind Socket" << endl;
 		exit(1);
 	}
-	cout << "listening succeded" << endl;
+	cout << "Waiting for client to connect..." << endl;
 	if (server_listener.accept(socket) != Socket::Done)
 	{
 		cout << "Server Failed To Accept Connection" << endl;
