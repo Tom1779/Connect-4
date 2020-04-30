@@ -166,6 +166,7 @@ bool game::checkWinner(char player)
 			gameState = 2;
 			//cout << "Congrats on the win player 2" << endl; // debug
 		}
+		cout << "horizontal" << endl;
 		return true;
 
 	}
@@ -183,6 +184,7 @@ bool game::checkWinner(char player)
 			gameState = 2;
 			cout << "Congrats on the win player 2" << endl; // debug
 		}
+		cout << "vertical" << endl;
 		return true;
 	}
 
@@ -199,12 +201,14 @@ bool game::checkWinner(char player)
 			gameState = 2;
 			cout << "Congrats on the win player 2" << endl; // debug
 		}
+		cout << "diagonal" << endl;
 		return true;
 	}
 
 	if (testTie() == true)
 	{
 		gameState = 3;
+		cout << "tie" << endl;
 		return true;
 	}
 
@@ -226,6 +230,7 @@ void game::delay(int milli_seconds)
 void connectGame::local_turn()
 {
 	UserData data;
+	Event event;
 	draw_board();
 	init_arrow();
 	int position = 3;
@@ -241,12 +246,14 @@ void connectGame::local_turn()
 	winner.setFillColor(Color::Black);
 	winner.setCharacterSize(100);
 	winner.setPosition(500, 500);
-	cout << "hello"	<< endl;
+	if (window->isOpen())
+	{
+		while (window->pollEvent(event)) {}
+	}
 	while (window->isOpen())
 	{
-		draw_board();
-		Event event;
 		int move = 0;
+		draw_board();
 		while (window->pollEvent(event))
 		{
 			if (event.type == Event::Closed)
@@ -279,6 +286,7 @@ void connectGame::local_turn()
 				placeChip(position, player_sign);
 				data.col = position;
 				net.send(data);
+				//display_current_board();
 				return;
 				//else no chip is placed, and loop contiunes
 
@@ -297,13 +305,14 @@ void connectGame::local_turn()
 		if (position > 6)
 			position--;
 		//clear window and put it bakc onto the screen
-	    display_current_board();
+		display_current_board();
 	}
 }
 
 void connectGame::remote_turn()
 {
 	sf::SocketSelector selector;
+	Event event;
 	selector.add(net.socket);
 	UserData data;
 	draw_board();
@@ -318,7 +327,8 @@ void connectGame::remote_turn()
 	winner.setPosition(500, 500);
 	while (window->isOpen())
 	{
-		Event event;
+		
+		display_current_board();
 		while (window->pollEvent(event))
 		{
 			if (event.type == Event::Closed)
@@ -333,8 +343,7 @@ void connectGame::remote_turn()
 				gameState = 3;
 			}
 		}
-		display_current_board();
-		if (selector.wait())
+		if (selector.wait(Time::Zero))
 		{
 			data = net.recieve();
 			if (player_sign == '1')
@@ -348,6 +357,7 @@ void connectGame::remote_turn()
 			break;
 		}
 	}
+	display_current_board();
 }
 
 connectGame::connectGame()
@@ -360,8 +370,6 @@ connectGame::connectGame()
 	{
 		player_sign = '2';
 	}
-
-	net.socket.setBlocking(false);
 
 	display_board(); //debugging
 
@@ -378,7 +386,7 @@ connectGame::connectGame()
 		display_board(); //debugging
 
 		//check if they just won
-		checkWinner(playerturn);
+		checkWinner(player_sign);
 
 		//switch the player turn
 		if (playerturn == '1')
@@ -442,7 +450,7 @@ void connectGame::draw_board()
 
 			if (board[row][col] == NULL)
 				circles[row][col].setFillColor(Color::White);
-			else if (board[row][col] == '1')
+			else if (board[row][col] == player_sign)
 				circles[row][col].setFillColor(Color::Yellow);
 			else
 				circles[row][col].setFillColor(Color::Red);
@@ -489,7 +497,10 @@ void connectGame::display_current_board()
 	window->draw(text);
 	window->draw(turn_text);
 	window->draw(person);
-	window->draw(arrow);
+	if (playerturn == '1')
+	{
+		window->draw(arrow);
+	}
 	window->draw(border);
 	window->draw(window_board);
 	window->draw(cover);
@@ -522,7 +533,7 @@ bool connectGame::testHorizontal(char player)
 			if (i <= 3) // checking horizontal combination to the right
 			{
 				if ((board[j][i] == player) && (board[j][i + 1] == player) && (board[j][i + 2] == player) && (board[j][i + 3] == player))
-				{
+				{ 
 					return true;
 				}
 			}
@@ -540,16 +551,9 @@ bool connectGame::testHorizontal(char player)
 
 bool connectGame::testVertical(char player)
 {
-	if (current_row >= 3) // checking vertical combination downwards
-	{
-		if ((board[current_row - 1][current_col] == player) && (board[current_row - 2][current_col] == player) && (board[current_row - 3][current_col] == player))
-		{
-			return true;
-		}
-	}
 	if (current_row <= 2) // checking vertical combination upwards
 	{
-		if ((board[current_row + 1][current_col] == player) && (board[current_row + 2][current_col] == player) && (board[current_row + 3][current_col] == player))
+		if ((board[current_row][current_col] == player) && (board[current_row + 1][current_col] == player) && (board[current_row + 2][current_col] == player) && (board[current_row + 3][current_col] == player))
 		{
 			return true;
 		}
