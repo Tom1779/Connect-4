@@ -17,7 +17,7 @@ protected:
 
 	Font font;
 	Text text;
-	RenderWindow *window;
+	RenderWindow *window = nullptr;
 	char player_sign;
 	//gamestate, 0 is normal, 1 is p1 win, 2 is p2 win, 3 is tie
 	int gameState;

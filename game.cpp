@@ -43,7 +43,10 @@ game::~game()
 {
 	//D E S T R U C T O R
 	//(lots of destruction)
-
+	if (window != nullptr)
+	{
+		delete window;
+	}
 	//can also display the winner here if you want
 	//declareWinner();
 }
@@ -67,24 +70,43 @@ void game::setUsernames()
 
 void game::declareWinner()
 {
-    /*
-	sf::Text text("", font);
+	text = Text("", font);
 	switch (gameState)
 	{
 	case 0:
 		cout << "Error, there is no winner\n";
 		break;
 	case 1:
-		cout << "Player 1 wins!\n";
-		text.setString(local_user +  "\n" + "Wins!");
-		text.setOutlineColor(Color::Blue);
-		text.setOutlineThickness(4.f);
+		if (player_sign == '1')
+		{
+			cout << "Player 1 wins!\n";
+			text.setString(local_user + "\n" + "Wins!");
+			text.setOutlineColor(Color::Blue);
+			text.setOutlineThickness(4.f);
+		}
+		else
+		{
+			cout << "Player 1 wins!\n";
+			text.setString(remote_user + "\n" + "Wins!");
+			text.setOutlineColor(Color::Blue);
+			text.setOutlineThickness(4.f);
+		}
 		break;
 	case 2:
-		cout << "Player 2 wins!\n";
-		text.setString(remote_user + "\n " + "Wins!");
-		text.setOutlineColor(Color::Blue);
-		text.setOutlineThickness(4.f);
+		if (player_sign == '2')
+		{
+			cout << "Player 2 wins!\n";
+			text.setString(local_user + "\n" + "Wins!");
+			text.setOutlineColor(Color::Blue);
+			text.setOutlineThickness(4.f);
+		}
+		else
+		{
+			cout << "Player 2 wins!\n";
+			text.setString(remote_user + "\n" + "Wins!");
+			text.setOutlineColor(Color::Blue);
+			text.setOutlineThickness(4.f);
+		}
 		break;
 	case 3:
 		cout << "It is a tie...\n";
@@ -103,6 +125,32 @@ void game::declareWinner()
 	text.setFillColor(sf::Color::Yellow);
 	text.setPosition(175, 350);
 
+	Texture texture;
+	if (!texture.loadFromFile("Trophy.png"))
+	{
+		cout << "Could not load Trophy.png" << endl;
+	}
+
+	Texture texture2;
+	if (!texture2.loadFromFile("Confetti3.png"))
+	{
+		cout << "Could not load confetti3.png" << endl;
+	}
+
+	Sprite trophy;
+	trophy.setTexture(texture);
+	trophy.setPosition(250, 250);
+
+	Sprite confetti;
+	confetti.setTexture(texture2);
+	confetti.setPosition(0, 0);
+
+	window->display();
+	window->draw(trophy);
+	window->draw(text);
+	window->draw(confetti);
+	window->display();
+
 	while (window->isOpen()) {
 
 		Event event;
@@ -114,35 +162,7 @@ void game::declareWinner()
 				window->close();
 			}
 		}
-
-		Texture texture;
-		if (!texture.loadFromFile("Trophy.png"))
-		{
-			cout << "Could not load Trophy.png" << endl;
-		}
-
-		Texture texture2;
-		if (!texture2.loadFromFile("Confetti3.png"))
-		{
-			cout << "Could not load confetti3.png" << endl;
-		}
-
-		Sprite trophy;
-		trophy.setTexture(texture);
-		trophy.setPosition(250, 250);
-
-		Sprite confetti;
-		confetti.setTexture(texture2);
-		confetti.setPosition(0, 0);
-
-		window->display();
-		window->draw(trophy);
-		window->draw(text);
-		window->draw(confetti);
-		window->display();
-		delay(20000);
-		window->close();
-	}*/
+	}
 }
 
 bool game::checkWinner(char player)
@@ -327,7 +347,6 @@ void connectGame::remote_turn()
 	winner.setPosition(500, 500);
 	while (window->isOpen())
 	{
-		cout << "3" << endl;
 		while (window->pollEvent(event))
 		{
 			if (event.type == Event::Closed)
