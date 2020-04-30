@@ -15,7 +15,10 @@ private:
 
 protected:
 
+	Font font;
+	Text text;
 	RenderWindow *window;
+	char player_sign;
 	//gamestate, 0 is normal, 1 is p1 win, 2 is p2 win, 3 is tie
 	int gameState;
 
@@ -73,13 +76,10 @@ private:
 	RectangleShape border = RectangleShape(Vector2f(815, 695));
 	Texture texture3;
 	Sprite cover;
-	Font font;
 	Text person;
-	Text text;
 	Text turn_text;
 	Text winner;
 	int position;
-	char player_sign;
 
 	void local_turn();
 	void remote_turn();

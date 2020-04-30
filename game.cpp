@@ -8,6 +8,7 @@ game::game()
 	//set gamestate to normal
 	gameState = 0;
 
+	font.loadFromFile("coolvetica_rg.ttf");
 	//set usernames?
 
 	//randomly set the first turn
@@ -66,11 +67,8 @@ void game::setUsernames()
 
 void game::declareWinner()
 {
-	sf::Font font;
-	font.loadFromFile("coolvetica_rg.ttf");
-
+    /*
 	sf::Text text("", font);
-	/*
 	switch (gameState)
 	{
 	case 0:
@@ -78,13 +76,13 @@ void game::declareWinner()
 		break;
 	case 1:
 		cout << "Player 1 wins!\n";
-		text.setString(username1 +  "\n" + "Wins!");
+		text.setString(local_user +  "\n" + "Wins!");
 		text.setOutlineColor(Color::Blue);
 		text.setOutlineThickness(4.f);
 		break;
 	case 2:
 		cout << "Player 2 wins!\n";
-		text.setString(username2 + "\n " + "Wins!");
+		text.setString(remote_user + "\n " + "Wins!");
 		text.setOutlineColor(Color::Blue);
 		text.setOutlineThickness(4.f);
 		break;
@@ -96,7 +94,6 @@ void game::declareWinner()
 		break;
 
 	}
-	*/
 	delete window;
 	 window = new sf::RenderWindow(sf::VideoMode(1024, 1024), "Winner");
 
@@ -143,9 +140,9 @@ void game::declareWinner()
 		window->draw(text);
 		window->draw(confetti);
 		window->display();
-		delay(3000);
+		delay(20000);
 		window->close();
-	}
+	}*/
 }
 
 bool game::checkWinner(char player)
@@ -283,7 +280,10 @@ void connectGame::local_turn()
 			{
 				//delay(10);
 				//test if they chip can be placed here, and if it can, then place it
-				placeChip(position, player_sign);
+				if (!placeChip(position, player_sign))
+				{
+					continue;
+				}
 				data.col = position;
 				net.send(data);
 				//display_current_board();
@@ -327,8 +327,7 @@ void connectGame::remote_turn()
 	winner.setPosition(500, 500);
 	while (window->isOpen())
 	{
-		
-		display_current_board();
+		cout << "3" << endl;
 		while (window->pollEvent(event))
 		{
 			if (event.type == Event::Closed)
@@ -343,7 +342,7 @@ void connectGame::remote_turn()
 				gameState = 3;
 			}
 		}
-		if (selector.wait(Time::Zero))
+		if (selector.wait(microseconds(1)))
 		{
 			data = net.recieve();
 			if (player_sign == '1')
@@ -356,8 +355,8 @@ void connectGame::remote_turn()
 			}
 			break;
 		}
-	}
 	display_current_board();
+	}
 }
 
 connectGame::connectGame()
@@ -386,7 +385,6 @@ connectGame::connectGame()
 		display_board(); //debugging
 
 		//check if they just won
-		checkWinner(player_sign);
 
 		//switch the player turn
 		if (playerturn == '1')
@@ -410,8 +408,7 @@ connectGame::connectGame()
 void connectGame::turn()
 {
 	int move = 0;
-	//Create Font (display score)
-	font.loadFromFile("coolvetica_rg.ttf");
+	
 
 	//Creates Texture
 
@@ -423,10 +420,19 @@ void connectGame::turn()
 	if (playerturn == '1')
 	{
 		local_turn();
+		checkWinner(player_sign);
 	}
 	else
 	{
 		remote_turn();
+		if (player_sign == '1')
+		{
+			checkWinner('2');
+		}
+		else
+		{
+			checkWinner('1');
+		}
 	}
 	
 
