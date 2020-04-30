@@ -65,11 +65,11 @@ int main()
 	show_rules();
 
 	game* test;
+	test = new connectGame();
 
 	while(true) // keeps running the game until says he wants to stop
 	{
-		test = new connectGame();
-		delete test;
+		test->play();
 		do
 		{
 			cout << "Do You Wish To Play Another Game (yes/no): ";
@@ -83,6 +83,9 @@ int main()
 		{
 			break;
 		}
+		cout << "Waiting for the other player to accept..." << endl;
+		test->barrier();
 	}
+	delete test;
 	return 0;
 }

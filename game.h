@@ -44,6 +44,7 @@ public:
 	//destructor
 	//virtual ~game();
 
+	virtual void play();
 	//sets usernames
 	void setUsernames();
 
@@ -61,6 +62,7 @@ public:
 
 	//delay function
 	void delay(int milli_seconds);
+	void barrier();
 
 };
 
@@ -104,8 +106,8 @@ public:
 	//for debugging
 	void display_board();
 
-
-
+	virtual void play();
+	void init_board();
 
 };
 

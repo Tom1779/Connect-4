@@ -2,40 +2,11 @@
 
 game::game()
 {
-	int i = 0;
-	UserData data;
-	net.init();
-	//set gamestate to normal
-	gameState = 0;
-
-	font.loadFromFile("coolvetica_rg.ttf");
-	//set usernames?
-
-	//randomly set the first turn
 	srand((unsigned)time(NULL));
-	if (net.is_server())
-	{
-		i = rand() % 2 + 1;
-		data.col = 3 - i;
-		net.send(data);
-	}
-	else
-	{
-		data = net.recieve();
-		i = data.col;
-	}
 
-	playerturn = (i == 1) ? '1' : '2';
-    
-
+	net.init();
 	//gets the usernames of the players
 	setUsernames();
-
-	window = new RenderWindow(VideoMode(1000, 1000), "Connect 4 C++");
-
-
-	current_col = 0;
-	current_row = 0;
 
 }
 
@@ -52,6 +23,44 @@ game::~game()
 }
 
 
+
+void game::play()
+{
+	int i = 0;
+	UserData data;
+	//set gamestate to normal
+	gameState = 0;
+
+	font.loadFromFile("coolvetica_rg.ttf");
+	//set usernames?
+
+	//randomly set the first turn
+	if (net.is_server())
+	{
+		i = rand() % 2 + 1;
+		data.col = 3 - i;
+		net.send(data);
+	}
+	else
+	{
+		data = net.recieve();
+		i = data.col;
+	}
+
+	playerturn = (i == 1) ? '1' : '2';
+
+
+	if (window != nullptr)
+	{
+		// Winner window from previous game
+		delete window;
+	}
+	window = new RenderWindow(VideoMode(1000, 1000), "Connect 4 C++");
+
+
+	current_col = 0;
+	current_row = 0;
+}
 
 void game::setUsernames()
 {
@@ -117,7 +126,7 @@ void game::declareWinner()
 
 	}
 	delete window;
-	 window = new sf::RenderWindow(sf::VideoMode(1024, 1024), "Winner");
+	window = new sf::RenderWindow(sf::VideoMode(1024, 1024), "Winner");
 
 	window->setFramerateLimit(12);
 
@@ -380,42 +389,6 @@ void connectGame::remote_turn()
 
 connectGame::connectGame()
 {
-	if (net.is_server())
-	{
-		player_sign = '1';
-	}
-	else
-	{
-		player_sign = '2';
-	}
-
-	display_board(); //debugging
-
-
-	while (gameState == 0)
-	{
-
-
-
-
-		//play makes his turn
-		turn();
-
-		display_board(); //debugging
-
-		//check if they just won
-
-		//switch the player turn
-		if (playerturn == '1')
-			playerturn = '2';
-		else
-			playerturn = '1';
-
-
-
-	}
-	declareWinner();
-
 }
 
 //connectGame::~connectGame()
@@ -688,6 +661,65 @@ void connectGame::display_board()
 		}
 		cout << endl;
 	}
+}
+
+void connectGame::play()
+{
+	game::play();
+	init_board();
+	if (net.is_server())
+	{
+		player_sign = '1';
+	}
+	else
+	{
+		player_sign = '2';
+	}
+
+	display_board(); //debugging
+
+
+	while (gameState == 0)
+	{
+
+
+
+
+		//play makes his turn
+		turn();
+
+		display_board(); //debugging
+
+		//check if they just won
+
+		//switch the player turn
+		if (playerturn == '1')
+			playerturn = '2';
+		else
+			playerturn = '1';
+
+
+
+	}
+	declareWinner();
+}
+
+void connectGame::init_board()
+{
+	for (int i = 0; i < 6; i++)
+	{
+		for (int j = 0; j < 7; j++)
+		{
+			board[i][j] = '\0';
+		}
+	}
+}
+
+void game::barrier()
+{
+	UserData data;
+	net.send(data);
+	data = net.recieve();
 }
 
 
