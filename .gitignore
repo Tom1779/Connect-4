@@ -1,6 +1,6 @@
 *.dll
-*.png
 Debug/
 *.log
 *.vcxproj*
-*.ttf
+.vs/
+*.lnk

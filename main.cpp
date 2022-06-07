@@ -1,7 +1,7 @@
 ﻿#include "game.h"
-int main()
+
+void show_rules()
 {
-	string choice;
 	//this will contain the menu where you can select the game
 	RenderWindow window(sf::VideoMode(634, 600), "Rules");
 
@@ -54,11 +54,22 @@ int main()
 		window.draw(text);
 		window.display();
 	}
+}
 
-	game* test = new connectGame();
+int main()
+{
+	/* NetworkConnection con;
+	con.init(); */
+	string choice;
+
+	show_rules();
+
+	game* test;
+	test = new connectGame();
 
 	while(true) // keeps running the game until says he wants to stop
 	{
+		test->play();
 		do
 		{
 			cout << "Do You Wish To Play Another Game (yes/no): ";
@@ -72,7 +83,9 @@ int main()
 		{
 			break;
 		}
-		test = new connectGame();
+		cout << "Waiting for the other player to accept..." << endl;
+		test->barrier();
 	}
+	delete test;
 	return 0;
 }

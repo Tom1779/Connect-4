@@ -1,14 +1,24 @@
 #include <iostream>
 #include <time.h>
 #include <SFML\Graphics.hpp>
+#include <SFML/Window.hpp>
+
+#include "NetworkConnection.h"
 
 using namespace std;
 using namespace sf;
 
 class game
 {
+private:
+
+
 protected:
 
+	Font font;
+	Text text;
+	RenderWindow *window = nullptr;
+	char player_sign;
 	//gamestate, 0 is normal, 1 is p1 win, 2 is p2 win, 3 is tie
 	int gameState;
 
@@ -16,16 +26,16 @@ protected:
 	char playerturn;
 
 	//name of p1
-	string username1;
+	string local_user;
 
 	//name of p2
-	string username2;
+	string remote_user;
 
 
 	int current_col;
 	int current_row;;
 
-
+	NetworkConnection net;
 
 public:
 	//constructor
@@ -34,6 +44,7 @@ public:
 	//destructor
 	//virtual ~game();
 
+	virtual void play();
 	//sets usernames
 	void setUsernames();
 
@@ -49,11 +60,9 @@ public:
 	bool virtual testDiagonal(char) = 0;
 	bool virtual testTie() = 0;
 
-	//controls
-	int moveHorizontal();
-
 	//delay function
 	void delay(int milli_seconds);
+	void barrier();
 
 };
 
@@ -62,13 +71,28 @@ class connectGame :public game
 {
 private:
 	char board[6][7] = {};
+	CircleShape circles[6][7];
+	Texture texture;
+	CircleShape arrow;
+	RectangleShape window_board = RectangleShape(Vector2f(795, 675));
+	RectangleShape border = RectangleShape(Vector2f(815, 695));
+	Texture texture3;
+	Sprite cover;
+	Text person;
+	Text turn_text;
+	Text winner;
+	int position;
 
+	void local_turn();
+	void remote_turn();
 
 public:
 	connectGame();
 
-	void turn(char player);
-
+	void turn();
+	void draw_board();
+	void display_current_board();
+	void init_arrow();
 
 	bool testHorizontal(char player);
 	bool testVertical(char player);
@@ -82,8 +106,8 @@ public:
 	//for debugging
 	void display_board();
 
-
-
+	virtual void play();
+	void init_board();
 
 };
 
